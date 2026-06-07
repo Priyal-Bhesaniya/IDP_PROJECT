@@ -1,0 +1,242 @@
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <img src="/assets/logo.jpg" alt="Auto Loop Logo" height="70px" width="70px" />
+
+    <ul>
+      <li class="active">📅 All Bookings</li>
+      <li (click)="goToServices()">🛠️ All Services</li>
+      <li (click)="goToExecutiveCars()">🚗 Executive Cars</li>
+
+      <li class="logout" (click)="logout()">🚪 Logout</li>
+    </ul>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div></div>
+      <div class="user-info">
+        <span class="user-name">{{ userName }}</span>
+        <div class="user-circle">{{ userInitials }}</div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <div class="page-container">
+
+        <!-- Header -->
+        <div class="header">
+          <h2>All Bookings</h2>
+
+          <div class="search-box">
+            <input type="text" placeholder="Search..." />
+            <button>🔍</button>
+          </div>
+        </div>
+
+        <!-- Grid Container -->
+        <div class="grid-container">
+          <table class="custom-grid" *ngIf="gridData.length > 0">
+            <thead>
+              <tr>
+                <th>Customer ID</th>
+              
+                <th>Service Name</th>
+                <th>Service Status</th>
+                <th>Duration of service</th>
+                <th>Total price</th>
+                <th>Car Number</th>
+             
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of gridData">
+                <!-- Customer ID -->
+                <td>
+                  <span class="badge clickable" (click)="openBookingDialog(item)">{{ item.customerId }}</span>
+                </td>
+                
+              
+                
+                <!-- Service Category -->
+                <td>{{ item.service }}</td>
+                
+                <!-- Service Status -->
+                <td>
+                  <span class="badge service-status" [ngClass]="getServiceStatusClass(item.serviceStatus)">
+                    {{ item.serviceStatus }}
+                  </span>
+                </td>
+                
+                <!-- Duration -->
+                <td>{{ item.duration }}</td>
+                
+                <!-- Price -->
+                <td>{{ item.price }} Rs.</td>
+                
+                <!-- Car Number -->
+                <td>{{ item.carNumber }}</td>
+                
+               
+              </tr>
+            </tbody>
+          </table>
+          
+          <!-- No data message -->
+          <div *ngIf="gridData.length === 0" class="no-data-message">
+            <p>No service booked yet</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Booking Details Dialog -->
+<div *ngIf="showDialog" class="dialog-overlay" (click)="closeDialog()">
+  <div class="dialog-content" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h3>Booking Details</h3>
+      <button class="close-btn" (click)="closeDialog()">×</button>
+    </div>
+    
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button class="tab-btn" [class.active]="activeTab === 'services'" (click)="switchTab('services')">
+        Service Bookings
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'rentals'" (click)="switchTab('rentals')">
+        Rental Bookings
+      </button>
+    </div>
+    
+    <div class="dialog-body">
+      <!-- Service Bookings Tab -->
+      <div *ngIf="activeTab === 'services'" class="tab-content">
+        <div class="table-container">
+          <table class="booking-table">
+            <thead>
+              <tr>
+                <th>Customer ID</th>
+                <th>Customer Name</th>
+                <th>Service Name</th>
+                <th>Service Status</th>
+                <th>Duration</th>
+                <th>Total Price</th>
+                <th>Car Number</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of selectedBookings">
+                <td>{{ item.customerId }}</td>
+                <td>{{ item.customerName }}</td>
+                <td>{{ item.service }}</td>
+                <td>
+                  <span class="badge service-status" [ngClass]="getServiceStatusClass(item.serviceStatus)">
+                    {{ item.serviceStatus }}
+                  </span>
+                </td>
+                <td>{{ item.duration }}</td>
+                <td>{{ item.price }} Rs.</td>
+                <td>{{ item.carNumber }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <!-- Pending status: Show Approve and Reject buttons -->
+                    <ng-container *ngIf="item.serviceStatus.toLowerCase() === 'pending'">
+                      <button class="btn btn-approve" (click)="updateBookingStatus(item, 'in-progress')">Approve</button>
+                      <button class="btn btn-reject" (click)="updateBookingStatus(item, 'rejected')">Reject</button>
+                    </ng-container>
+                    
+                    <!-- In-Progress status: Show Completed button -->
+                    <ng-container *ngIf="item.serviceStatus.toLowerCase() === 'in-progress'">
+                      <button class="btn btn-complete" (click)="updateBookingStatus(item, 'completed')">Completed</button>
+                    </ng-container>
+                    
+                    <!-- Other statuses: No action buttons -->
+                    <ng-container *ngIf="item.serviceStatus.toLowerCase() !== 'pending' && item.serviceStatus.toLowerCase() !== 'in-progress'">
+                      <span class="no-action">-</span>
+                    </ng-container>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Rental Bookings Tab -->
+      <div *ngIf="activeTab === 'rentals'" class="tab-content">
+        <div *ngIf="loadingRentals" class="loading-message">
+          <p>Loading rental bookings...</p>
+        </div>
+        
+        <div *ngIf="!loadingRentals" class="table-container">
+          <table class="booking-table" *ngIf="selectedRentalBookings.length > 0">
+            <thead>
+              <tr>
+                <th>Booking ID</th>
+                <th>Car Category</th>
+                <th>Car Number</th>
+                <th>Rental Days</th>
+                <th>Price/Day</th>
+                <th>Total Amount</th>
+                <th>Rental Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let rental of selectedRentalBookings">
+                <td>{{ rental.id ? 'RT' + rental.id : 'N/A' }}</td>
+                <td>{{ rental.carCategory || 'N/A' }}</td>
+                <td>{{ rental.carNumber || 'N/A' }}</td>
+                <td>{{ rental.rentalDays || 0 }}</td>
+                <td>{{ rental.pricePerDay || 0 }} Rs.</td>
+                <td>{{ rental.totalAmount || 0 }} Rs.</td>
+                <td>
+                  <span class="badge service-status" [ngClass]="getRentalStatusClass(rental.rentalStatus)">
+                    {{ rental.rentalStatus || 'Unknown' }}
+                  </span>
+                </td>
+                <td>
+                  <div class="action-buttons">
+                    <!-- Pending status: Show Approve and Reject buttons -->
+                    <ng-container *ngIf="rental.rentalStatus?.toLowerCase() === 'pending'">
+                      <button class="btn btn-approve" (click)="updateRentalBookingStatus(rental, 'active')">Approve</button>
+                      <button class="btn btn-reject" (click)="updateRentalBookingStatus(rental, 'cancelled')">Reject</button>
+                    </ng-container>
+                    
+                    <!-- Active status: Show Completed button -->
+                    <ng-container *ngIf="rental.rentalStatus?.toLowerCase() === 'active'">
+                      <button class="btn btn-complete" (click)="updateRentalBookingStatus(rental, 'completed')">Completed</button>
+                    </ng-container>
+                    
+                    <!-- Other statuses: No action buttons -->
+                    <ng-container *ngIf="rental.rentalStatus?.toLowerCase() !== 'pending' && rental.rentalStatus?.toLowerCase() !== 'active'">
+                      <span class="no-action">-</span>
+                    </ng-container>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <!-- No rental bookings message -->
+          <div *ngIf="selectedRentalBookings.length === 0" class="no-data-message">
+            <p>No rental bookings found for this customer</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

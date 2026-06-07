@@ -1,0 +1,383 @@
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <img src="/assets/logo.jpg" alt="Auto Loop Logo" height="70px" width="70px" />
+
+    <ul>
+      <li (click)="goToBookings()">📅 All Bookings</li>
+      <li class="active">🛠️ All Services</li>
+      <li (click)="goToExecutiveCars()">🚗 Executive Cars</li>
+
+      <li class="logout" (click)="logout()">🚪 Logout</li>
+    </ul>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div></div>
+      <div class="user-info">
+        <span class="user-name">{{ userName }}</span>
+        <div class="user-circle">{{ userInitials }}</div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <div class="page-container">
+
+        <!-- Header -->
+        <div class="header">
+          <h2>All Services</h2>
+
+          <div class="search-box">
+            <input type="text" placeholder="Search..." />
+            <button>🔍</button>
+            <button class="add-service-btn" (click)="openAddServiceDialog()">➕ Add Service</button>
+          </div>
+        </div>
+
+  <!-- Services Grid Container -->
+  <div class="grid-container">
+    <table class="custom-grid">
+      <thead>
+        <tr>
+          <th>Service ID</th>
+          <th>Service Name</th>
+          <th>Estimated Time</th>
+          <th>Rental Allowed</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let service of servicesData; let i = index">
+
+           <td>
+            <span class="row-number">{{ i + 1 }}</span>
+            <div class="action-buttons">
+              <button class="action-btn view-btn" (click)="viewService(service)" title="View">
+                <span class="icon">👁️</span>
+              </button>
+              <button class="action-btn edit-btn" (click)="editService(service)" title="Edit">
+                <span class="icon">✏️</span>
+              </button>
+              <button class="action-btn delete-btn" (click)="deleteService(service)" title="Delete">
+                <span class="icon">🗑️</span>
+              </button>
+            </div>
+          </td>
+          <!-- Service Name -->
+          <td>{{ service.name }}</td>
+          
+         
+         
+          
+          <!-- Estimated Time -->
+          <td>{{ service.estimatedTime }}</td>
+          
+          <!-- Rental Allowed Toggle -->
+          <td>
+            <label class="toggle-switch">
+              <input type="checkbox" [checked]="service.rentalAllowed" (change)="toggleRentalAllowed(service)">
+              <span class="slider"></span>
+            </label>
+          </td>
+          
+          <!-- Status Toggle -->
+          <td>
+            <label class="toggle-switch">
+              <input type="checkbox" [checked]="service.status === 'Active'" (change)="toggleStatus(service)">
+              <span class="slider"></span>
+            </label>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Dialog with Background Blur -->
+<div class="dialog-overlay" *ngIf="showDialog" (click)="closeDialog()">
+  <div class="dialog-container" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h3>Add Services</h3>
+      <button class="close-btn" (click)="closeDialog()">✕</button>
+    </div>
+
+    <div class="dialog-content">
+      <!-- LEFT SIDE -->
+      <div class="left-section">
+        <label>Service Name</label>
+        <input type="text" [(ngModel)]="newService.name" placeholder="Enter service name" />
+
+        <label>Estimated Time</label>
+        <input type="text" [(ngModel)]="newService.estimatedTime" placeholder="e.g. 30 min" />
+
+        <!-- TOGGLE -->
+        <div class="toggle-row">
+          <span>Rental Allowed</span>
+          <label class="toggle-switch">
+            <input type="checkbox" [(ngModel)]="newService.rentalAllowed">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <span>Status</span>
+          <label class="toggle-switch">
+            <input type="checkbox" [(ngModel)]="newService.status">
+            <span class="slider"></span>
+          </label>
+          <span class="status-text" *ngIf="newService.status">Active</span>
+          <span class="status-text inactive" *ngIf="!newService.status">Inactive</span>
+        </div>
+      </div>
+
+      <!-- RIGHT SIDE -->
+      <div class="right-section">
+        <label>Select Brand & Type</label>
+        <div class="tree-view">
+          <div class="tree-node" *ngFor="let brand of treeData; let brandIndex = index">
+            <div class="brand-node">
+              <input type="checkbox" 
+                     [(ngModel)]="brand.checked" 
+                     (change)="onBrandChange(brandIndex)"
+                     class="tree-checkbox" />
+              <span class="brand-text">{{ brand.text }}</span>
+            </div>
+            <div class="type-nodes">
+              <div class="type-node" *ngFor="let type of brand.items; let typeIndex = index">
+                <input type="checkbox" 
+                       [(ngModel)]="type.checked" 
+                       (change)="onTypeChange(brandIndex, typeIndex)"
+                       class="tree-checkbox" />
+                <span class="type-text">{{ type.text }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Price Section -->
+        <div class="price-section" *ngIf="showPriceField">
+          <label class="price-label">Set Prices for Selected Items:</label>
+          <div class="price-items">
+            <div class="price-item" *ngFor="let item of selectedItems; let i = index">
+              <span class="item-name">{{ item.brand }} - {{ item.type }}</span>
+              <div class="price-input-group">
+                <span class="currency">₹</span>
+                <input type="number" 
+                       [(ngModel)]="item.price" 
+                       (ngModelChange)="updatePrice(i, $event)"
+                       class="price-input" 
+                       placeholder="0"
+                       min="0" />
+              </div>
+              <button class="remove-btn" (click)="removeSelectedItem(i)" title="Remove">✕</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="dialog-actions">
+      <button class="cancel-btn" (click)="closeDialog()">Cancel</button>
+      <button class="save-btn" (click)="saveService()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Service Dialog -->
+<div class="dialog-overlay" *ngIf="showViewDialog" (click)="closeViewDialog()">
+  <div class="dialog-container view-dialog" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h3>Service Details</h3>
+      <button class="close-btn" (click)="closeViewDialog()">✕</button>
+    </div>
+
+    <div class="dialog-content">
+      <div class="view-details">
+        <div class="detail-row">
+          <label>Service ID:</label>
+          <span>{{ selectedService?.id }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Service Name:</label>
+          <span>{{ selectedService?.name }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Estimated Time:</label>
+          <span>{{ selectedService?.estimatedTime }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Rental Allowed:</label>
+          <span>{{ selectedService?.rentalAllowed ? 'Yes' : 'No' }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Status:</label>
+          <span class="status-badge" [class.active]="selectedService?.status === 'Active'">
+            {{ selectedService?.status }}
+          </span>
+        </div>
+        
+        <!-- Brand/Price Section -->
+        <div class="brand-price-section" *ngIf="selectedService && selectedService.brandPrices && selectedService.brandPrices.length > 0">
+          <div class="section-header">
+            <label>Brand & Pricing Details</label>
+          </div>
+          <div class="brand-price-list">
+            <div class="brand-price-item" *ngFor="let item of selectedService.brandPrices; let i = index">
+              <div class="brand-info">
+                <span class="brand-name">{{ item.brand }}</span>
+                <span class="type-name">{{ item.type }}</span>
+              </div>
+              <div class="price-info">
+                <span class="price-amount">₹{{ item.price || 0 }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- No Brand/Price Message -->
+        <div class="no-brand-price" *ngIf="!selectedService || !selectedService.brandPrices || selectedService.brandPrices.length === 0">
+          <span>No brand and pricing information available</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <button class="save-btn" (click)="closeViewDialog()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Service Dialog -->
+<div class="dialog-overlay" *ngIf="showEditDialog" (click)="closeEditDialog()">
+  <div class="dialog-container" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h3>Edit Service</h3>
+      <button class="close-btn" (click)="closeEditDialog()">✕</button>
+    </div>
+
+    <div class="dialog-content">
+      <!-- LEFT SIDE -->
+      <div class="left-section">
+        <label>Service ID</label>
+        <input type="text" [value]="editingService?.id" disabled />
+
+        <label>Service Name</label>
+        <input type="text" [(ngModel)]="editingService!.name" placeholder="Enter service name" />
+
+        <label>Estimated Time</label>
+        <input type="text" [(ngModel)]="editingService!.estimatedTime" placeholder="e.g. 30 min" />
+
+        <!-- TOGGLE -->
+        <div class="toggle-row">
+          <span>Rental Allowed</span>
+          <label class="toggle-switch">
+            <input type="checkbox" [(ngModel)]="editingService!.rentalAllowed">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <span>Status</span>
+          <label class="toggle-switch">
+            <input type="checkbox" [checked]="editingService?.status === 'Active'" (change)="toggleEditStatus()">
+            <span class="slider"></span>
+          </label>
+          <span class="status-text" *ngIf="editingService?.status === 'Active'">Active</span>
+          <span class="status-text inactive" *ngIf="editingService?.status === 'Inactive'">Inactive</span>
+        </div>
+      </div>
+
+      <!-- RIGHT SIDE -->
+      <div class="right-section">
+        <label>Select Brand & Type</label>
+        <div class="tree-view">
+          <div class="tree-node" *ngFor="let brand of editTreeData; let brandIndex = index">
+            <div class="brand-node">
+              <input type="checkbox" 
+                     [(ngModel)]="brand.checked" 
+                     (change)="onEditBrandChange(brandIndex)"
+                     class="tree-checkbox" />
+              <span class="brand-text">{{ brand.text }}</span>
+            </div>
+            <div class="type-nodes">
+              <div class="type-node" *ngFor="let type of brand.items; let typeIndex = index">
+                <input type="checkbox" 
+                       [(ngModel)]="type.checked" 
+                       (change)="onEditTypeChange(brandIndex, typeIndex)"
+                       class="tree-checkbox" />
+                <span class="type-text">{{ type.text }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Price Section -->
+        <div class="price-section" *ngIf="showEditPriceField">
+          <label class="price-label">Set Prices for Selected Items:</label>
+          <div class="price-items">
+            <div class="price-item" *ngFor="let item of editSelectedItems; let i = index">
+              <span class="item-name">{{ item.brand }} - {{ item.type }}</span>
+              <div class="price-input-group">
+                <span class="currency">₹</span>
+                <input type="number" 
+                       [(ngModel)]="item.price" 
+                       (ngModelChange)="updateEditPrice(i, $event)"
+                       class="price-input" 
+                       placeholder="0"
+                       min="0" />
+              </div>
+              <button class="remove-btn" (click)="removeEditSelectedItem(i)" title="Remove">✕</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="dialog-actions">
+      <button class="cancel-btn" (click)="closeEditDialog()">Cancel</button>
+      <button class="save-btn" (click)="saveEditedService()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<div class="dialog-overlay" *ngIf="showDeleteDialog" (click)="closeDeleteDialog()">
+  <div class="dialog-container delete-dialog" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h3>Delete Service</h3>
+      <button class="close-btn" (click)="closeDeleteDialog()">✕</button>
+    </div>
+
+    <div class="dialog-content">
+      <div class="delete-warning">
+        <p>Are you sure you want to delete this service?</p>
+        <div class="service-info">
+          <strong>{{ selectedService?.name }}</strong>
+          <span>{{ selectedService?.id }}</span>
+        </div>
+        <p class="warning-text">This action cannot be undone.</p>
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <button class="cancel-btn" (click)="closeDeleteDialog()">Cancel</button>
+      <button class="delete-btn" (click)="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>

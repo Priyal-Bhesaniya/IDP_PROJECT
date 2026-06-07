@@ -1,0 +1,60 @@
+<div class="container">
+
+  <!-- LEFT BACKGROUND IMAGE AREA -->
+  <div class="left-section">
+    <img src="/assets/background.jpg" alt="Background Image" class="full-background" />
+  </div>
+
+  <!-- RIGHT FORM AREA -->
+  <div class="right-section">
+    <div class="form-container">
+
+      <img src="/assets/logo.jpg" alt="Auto Loop Logo"  />
+
+      <!-- Mobile Number Section -->
+      <div *ngIf="!showOTP">
+        <label>Name:</label>
+        <input type="text" [(ngModel)]="userName" placeholder="Enter your name" />
+
+        <label>Mobile no:</label>
+        <input type="text" [(ngModel)]="mobileNumber" placeholder="Enter 10-digit mobile number" />
+
+        <button (click)="sendOTP()" [disabled]="loading || !userName || !mobileNumber || mobileNumber.length < 10">
+          {{ loading ? 'Sending...' : 'Send OTP' }}
+        </button>
+      </div>
+
+      <!-- OTP Section -->
+      <div *ngIf="showOTP">
+        <label>Mobile no:</label>
+        <input type="text" [(ngModel)]="mobileNumber" disabled />
+
+        <label>OTP:</label>
+        <div class="otp-inputs">
+          <input type="text" class="otp-input" maxlength="1" [(ngModel)]="otp[0]" />
+          <input type="text" class="otp-input" maxlength="1" [(ngModel)]="otp[1]" />
+          <input type="text" class="otp-input" maxlength="1" [(ngModel)]="otp[2]" />
+          <input type="text" class="otp-input" maxlength="1" [(ngModel)]="otp[3]" />
+          <input type="text" class="otp-input" maxlength="1" [(ngModel)]="otp[4]" />
+          <input type="text" class="otp-input" maxlength="1" [(ngModel)]="otp[5]" />
+        </div>
+
+        <button (click)="verifyOTP()" [disabled]="loading || otp.join('').length !== 6">
+          {{ loading ? 'Verifying...' : 'Verify OTP' }}
+        </button>
+
+        <button class="resend-btn" (click)="resendOTP()" [disabled]="loading || isAccountLocked">
+          {{ isAccountLocked ? 'Account Locked' : 'Resend OTP' }}
+        </button>
+      </div>
+
+      <!-- Message Display -->
+      <div *ngIf="message" class="message" [class.success]="messageType === 'success'" [class.error]="messageType === 'error'">
+        {{ message }}
+      </div>
+
+      
+    </div>
+  </div>
+
+</div>

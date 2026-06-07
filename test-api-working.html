@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Working Test</title>
+</head>
+<body>
+    <h1>Backend API Test</h1>
+    <button onclick="testBackend()">Test Backend API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testBackend() {
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/send-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        mobileNumber: "9999999999",
+                        name: "System Admin"
+                    })
+                });
+                
+                const result = await response.json();
+                document.getElementById('result').innerHTML = `
+                    <h3>✅ BACKEND IS WORKING!</h3>
+                    <p><strong>Status:</strong> ${response.status}</p>
+                    <p><strong>Response:</strong></p>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <h3>❌ BACKEND ERROR!</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

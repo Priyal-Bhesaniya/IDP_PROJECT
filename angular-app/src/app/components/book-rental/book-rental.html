@@ -1,0 +1,365 @@
+<div class="dashboard">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <img src="/assets/logo.jpg" alt="Auto Loop Logo" height="70px" width="70px"  />
+
+     <ul>
+      <li (click)="goToDashboard()">🏠 Dashboard</li>
+      <li (click)="goToDealer()">👥 Dealer</li>
+      <li (click)="goToBookService()">🛠️ Book Services</li>
+      <li class="active">🚗 Book Rental</li>
+
+      <li class="logout" (click)="logout()">🚪 Logout</li>
+    </ul>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div></div>
+      <div class="topbar-right">
+        <div class="user-info">
+          <span class="user-name">{{ userName }}</span>
+          <div class="user-circle">{{ userInitials }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- PAGE HEADER -->
+      <div class="page-header d-flex justify-content-between align-items-center">
+      <div>  <h2>Book Rental Cars</h2>
+        <p>Browse and book rental cars for your needs</p>
+           <!-- Toggle Buttons --></div>
+        <div class="toggle-bar">
+          <button 
+            [class.active]="viewType === 'grid'" 
+            (click)="viewType = 'grid'">
+            Executive Cars
+          </button>
+
+         
+        </div>
+      </div>
+
+    
+
+      <!-- Dealer Selection -->
+      <div class="dealer-selection" *ngIf="!selectedDealer">
+        <h3>Select Dealer First</h3>
+        <div class="dealer-cards" *ngIf="availableDealers.length > 0">
+          <div class="dealer-card" *ngFor="let dealer of availableDealers" (click)="selectDealer(dealer)">
+            <div class="dealer-info">
+              <h4>{{ dealer.name }}</h4>
+              <p>{{ dealer.address }}</p>
+              <p>Mobile: {{ dealer.phone }}</p>
+            </div>
+            <div class="dealer-status" [class.active]="dealer.status === 'Active'">
+              {{ dealer.status }}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Loading Indicator -->
+        <div class="loading-indicator" *ngIf="loading && !dataLoaded">
+          <div class="loading-content">
+            <div class="loading-spinner">⏳</div>
+            <h3>Loading Services</h3>
+            <p>Checking your service status...</p>
+          </div>
+        </div>
+        
+        <!-- No Service Message -->
+        <div class="no-service-message" *ngIf="availableDealers.length === 0 && !loading && dataLoaded">
+          <div class="no-service-content">
+            <div class="no-service-icon">❌</div>
+            <h3>No Service Available</h3>
+            <p>No service in progress</p>
+            <p>You can only rent cars from dealers where you have an in-progress service.</p>
+            <p>Please book a service first to access rental options.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service Status Message -->
+      <div class="service-status-message" *ngIf="serviceStatusMessage && dataLoaded">
+        <div class="alert alert-warning">
+          {{ serviceStatusMessage }}
+        </div>
+      </div>
+
+      <!-- Selected Dealer Info -->
+      <div class="selected-dealer" *ngIf="selectedDealer">
+        <div class="dealer-header">
+          <h3>Selected Dealer: {{ selectedDealer.name }}</h3>
+          <button class="change-dealer-btn" (click)="changeDealer()">Change Dealer</button>
+        </div>
+      </div>
+
+      <!-- CAR CONTAINER -->
+      <div class="car-container" *ngIf="selectedDealer && !serviceStatusMessage">
+
+    
+
+        <!-- GRID TABLE -->
+        <div class="grid-wrapper" *ngIf="viewType === 'grid'">
+
+          <table class="car-grid">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Category</th>
+                <th>Car Number</th>
+                <th>Min Km</th>
+                <th>Extra Km</th>
+                <th>Max Km</th>
+                <th>Gear Type</th>
+                <th>Fuel Type</th>
+                <th>Seats</th>
+                <th>Price/Day</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let car of carList">
+                <td>{{ car.id }}</td>
+                <td>{{ car.category }}</td>
+                <td>{{ car.carNumber }}</td>
+                <td>{{ car.minKm }}</td>
+                <td>{{ car.extraKm }}</td>
+                <td>{{ car.maxKm }}</td>
+                <td>{{ car.gearType }}</td>
+                <td>{{ car.fuelType }}</td>
+                <td>{{ car.seats }}</td>
+                <td>{{ car.pricePerDay }} Rs.</td>
+
+                <td>
+                  <button class="book-btn" (click)="bookCar(car)">Book Now</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- No Cars Message -->
+          <div class="no-cars-message" *ngIf="noCarsMessage && carList.length === 0">
+            <div class="no-cars-content">
+              <div class="no-cars-icon">🚗</div>
+              <h3>No Cars Available</h3>
+              <p>{{ noCarsMessage }}</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- LIST VIEW -->
+        <div class="list-wrapper" *ngIf="viewType === 'list'">
+          <div class="car-list">
+            <div class="car-card" *ngFor="let car of carList">
+              <div class="car-header">
+                <h3>{{ car.category }}</h3>
+                <span class="car-number">{{ car.carNumber }}</span>
+              </div>
+              <div class="car-details">
+                <div class="detail-row">
+                  <span class="label">Gear:</span>
+                  <span class="value">{{ car.gearType }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Fuel:</span>
+                  <span class="value">{{ car.fuelType }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Seats:</span>
+                  <span class="value">{{ car.seats }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Kilometers:</span>
+                  <span class="value">{{ car.minKm }} - {{ car.maxKm }} km</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Extra Km:</span>
+                  <span class="value">{{ car.extraKm }} Rs./km</span>
+                </div>
+              </div>
+              <div class="car-footer">
+                <div class="price">
+                  <span class="price-amount">{{ car.pricePerDay }}</span>
+                  <span class="price-unit">Rs./day</span>
+                </div>
+                <button class="book-btn" (click)="bookCar(car)">Book Now</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- No Cars Message -->
+          <div class="no-cars-message" *ngIf="noCarsMessage && carList.length === 0">
+            <div class="no-cars-content">
+              <div class="no-cars-icon">🚗</div>
+              <h3>No Cars Available</h3>
+              <p>{{ noCarsMessage }}</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- Rental Booking Dialog -->
+<div class="rental-dialog-overlay" *ngIf="showRentalDialog" (click)="closeRentalDialog()">
+  <div class="rental-dialog" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h3>Rental Booking Summary</h3>
+      <button class="close-btn" (click)="closeRentalDialog()">×</button>
+    </div>
+    
+    <div class="dialog-content">
+      <!-- Car Details -->
+      <div class="car-summary">
+        <h4>Car Details</h4>
+        <div class="car-info-grid">
+          <div class="info-item">
+            <label>Category:</label>
+            <span>{{ selectedCar?.category }}</span>
+          </div>
+          <div class="info-item">
+            <label>Car Number:</label>
+            <span>{{ selectedCar?.carNumber }}</span>
+          </div>
+          <div class="info-item">
+            <label>Min Km:</label>
+            <span>{{ selectedCar?.minKm }}</span>
+          </div>
+          <div class="info-item">
+            <label>Extra Km:</label>
+            <span>{{ selectedCar?.extraKm }}</span>
+          </div>
+          <div class="info-item">
+            <label>Max Km:</label>
+            <span>{{ selectedCar?.maxKm }}</span>
+          </div>
+          <div class="info-item">
+            <label>Gear Type:</label>
+            <span>{{ selectedCar?.gearType }}</span>
+          </div>
+          <div class="info-item">
+            <label>Fuel Type:</label>
+            <span>{{ selectedCar?.fuelType }}</span>
+          </div>
+          <div class="info-item">
+            <label>Seats:</label>
+            <span>{{ selectedCar?.seats }}</span>
+          </div>
+          <div class="info-item">
+            <label>Price/Day:</label>
+            <span>{{ selectedCar?.pricePerDay }} Rs.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rental Details -->
+      <div class="rental-details">
+        <h4>Rental Details</h4>
+        <div class="rental-form">
+          <div class="form-group">
+            <label for="rentalDays">Rental Days:</label>
+            <input type="number" id="rentalDays" [(ngModel)]="rentalDays" (change)="onRentalDaysChange()" min="1" max="30">
+          </div>
+          <div class="total-amount">
+            <label>Total Amount:</label>
+            <span class="amount">{{ totalAmount }} Rs.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fuel & Insurance Policy -->
+      <div class="policies">
+        <h4>Policies</h4>
+        <div class="policy-group">
+          <div class="form-group">
+            <label for="fuelPolicy">Fuel Policy:</label>
+            <select id="fuelPolicy" [(ngModel)]="fuelPolicy">
+              <option value="Full Tank to Full Tank">Full Tank to Full Tank</option>
+              <option value="Same to Same">Same to Same</option>
+              <option value="Customer Pays">Customer Pays</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="insurancePolicy">Insurance Policy:</label>
+            <select id="insurancePolicy" [(ngModel)]="insurancePolicy">
+              <option value="Basic Insurance">Basic Insurance</option>
+              <option value="Comprehensive Insurance">Comprehensive Insurance</option>
+              <option value="Premium Insurance">Premium Insurance</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Method -->
+      <div class="payment-section">
+        <h4>Payment Method</h4>
+        <div class="payment-form">
+          <div class="form-group">
+            <label for="paymentMethod">Payment Method:</label>
+            <select id="paymentMethod" [(ngModel)]="paymentMethod">
+              <option value="">Select Payment Method</option>
+              <option value="netbanking">Net Banking</option>
+              <option value="upi">UPI</option>
+              <option value="creditcard">Credit Card</option>
+              <option value="debitcard">Debit Card</option>
+            </select>
+          </div>
+          <div class="form-group" *ngIf="paymentMethod === 'netbanking'">
+            <label for="bankName">Bank Name:</label>
+            <input type="text" id="bankName" [(ngModel)]="bankName" placeholder="Enter bank name">
+          </div>
+        </div>
+      </div>
+
+      <!-- Rental Agreement -->
+      <div class="agreement-section">
+        <h4>Rental Agreement</h4>
+        <div class="agreement-content">
+          <div class="agreement-text">
+            <h5>Terms and Conditions:</h5>
+            <ul>
+              <li>The renter is responsible for any damage to the vehicle during the rental period</li>
+              <li>The renter must return the vehicle in the same condition as received</li>
+              <li>Late return will incur additional charges</li>
+              <li>The renter must have a valid driving license</li>
+              <li>Fuel charges will be as per the selected fuel policy</li>
+            </ul>
+          </div>
+          
+          <div class="agreement-checkbox">
+            <input type="checkbox" id="agreement" [(ngModel)]="agreementAccepted">
+            <label for="agreement">I accept the terms and conditions</label>
+          </div>
+
+          <div class="signature-section" *ngIf="agreementAccepted">
+            <label for="signature">Digital Signature:</label>
+            <textarea id="signature" [(ngModel)]="digitalSignature" placeholder="Type your full name as digital signature" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <button class="cancel-btn" (click)="closeRentalDialog()">Cancel</button>
+      <button class="book-btn" (click)="processRentalBooking()" [disabled]="!agreementAccepted || !digitalSignature || !paymentMethod || processingPayment">
+        <span *ngIf="!processingPayment">Book Now</span>
+        <span *ngIf="processingPayment">Processing...</span>
+      </button>
+    </div>
+  </div>
+</div>

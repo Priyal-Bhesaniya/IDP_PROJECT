@@ -1,0 +1,69 @@
+<div class="dashboard">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <img src="/assets/logo.jpg" alt="Auto Loop Logo" height="70px" width="70px" />
+
+    <ul>
+      <li class="active">🏠 Dashboard</li>
+      <li (click)="goToDealers()">🚗 Dealers</li>
+      <li class="logout" (click)="logout()">🚪 Logout</li>
+    </ul>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div></div>
+      <div class="user-info">
+        <span class="user-name">{{ userName }}</span>
+        <div class="user-circle">{{ userInitials }}</div>
+      </div>
+    </div>
+
+    <!-- KPI CARDS - READ ONLY FOR ADMIN -->
+    <div class="kpi-row">
+      <div class="kpi-card">Total Dealers <span>{{ totalDealers || 0 }}</span></div>
+      <div class="kpi-card">Active Dealers <span>{{ activeDealers || 0 }}</span></div>
+    
+    </div>
+
+    <!-- CHART -->
+    <div class="chart-box">
+      <h3>Dealer Growth Overview</h3>
+
+      <!-- Dealer Statistics Chart -->
+      <div class="simple-chart">
+        <div class="chart-bar" style="height: 40%" title="Total Dealers"></div>
+        <div class="chart-bar" style="height: 65%" title="Active Dealers"></div>
+        <div class="chart-bar" style="height: 85%" title="Growth Rate"></div>
+        <div class="chart-bar" style="height: 100%" title="Peak Performance"></div>
+        <div class="chart-bar" style="height: 75%" title="Current Month"></div>
+        <div class="chart-bar" style="height: 90%" title="Projected"></div>
+      </div>
+      <div class="chart-labels">
+        <span>Total</span>
+        <span>Active</span>
+        <span>Growth</span>
+        <span>Peak</span>
+        <span>Current</span>
+        <span>Projected</span>
+      </div>
+      
+      <!-- Chart Legend -->
+      <div class="chart-legend">
+        <div class="legend-item">
+          <span class="legend-color total"></span>
+          <span>Total Dealers: {{ totalDealers || 0 }}</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color active"></span>
+          <span>Active Dealers: {{ activeDealers || 0 }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,184 @@
+<div class="dashboard">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <img src="/assets/logo.jpg" alt="Auto Loop Logo" height="70px" width="70px"  />
+
+     <ul>
+      <li class="active">🏠 Dashboard</li>
+      <li (click)="goToDealer()">👥 Dealer</li>
+      <li (click)="goToBookService()">🛠️ Book Services</li>
+      <li (click)="goToBookRental()">🚗 Book Rental</li>
+
+      <li class="logout" (click)="logout()">🚪 Logout</li>
+    </ul>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div></div>
+      <div class="topbar-right">
+        <!-- Notification Bell -->
+        <div class="notification-bell" (click)="toggleNotifications()">
+          <span class="bell-icon">🔔</span>
+          <span class="notification-count" *ngIf="notificationCount > 0">{{ notificationCount }}</span>
+        </div>
+        
+        <div class="user-info">
+          <span class="user-name">{{ userName }}</span>
+          <div class="user-circle">{{ userInitials }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARDS -->
+    <div class="cards">
+
+      <div class="card dark" *ngIf="latestBooking; else noBookingCard">
+        <span class="status">{{ latestBooking.serviceStatus }}</span>
+        <h3>{{ latestBooking.model}}</h3>
+        <p>{{ latestBooking.carNumber }}</p>
+        <p class="time">{{ latestBooking.createdAt | date }}</p>
+
+        <!-- Cancel Service Button (only show when pending) -->
+        <button class="cancel-service-btn" 
+                *ngIf="latestBooking.serviceStatus === 'Pending'" 
+                (click)="cancelService(latestBooking.bookingId)"
+                [disabled]="cancelling">
+          {{ cancelling ? 'Cancelling...' : 'Cancel Service' }}
+        </button>
+      </div>
+
+    </div>
+
+    <!-- No booking template -->
+    <ng-template #noBookingCard>
+      <div class="card dark">
+        <span class="status">No Active Service</span>
+        <h3>No Vehicle in Service</h3>
+        <p>Book a service to get started</p>
+        <p class="time">N/A</p>
+      </div>
+    </ng-template>
+
+    <!-- ACTIVE SERVICES -->
+    <div class="table-section">
+      <h3>Active Services</h3>
+      
+      <div *ngIf="serviceData.length === 0 && !loading" style="background: #ffe6e6; padding: 10px; margin-bottom: 10px;">
+        <small>Debug: No bookings found</small>
+      </div>
+      
+      <div class="simple-table" *ngIf="!loading; else loadingTemplate">
+        <table *ngIf="serviceData.length > 0">
+          <thead>
+            <tr>
+              <th>Booking Id</th>
+              <th>Service name</th>
+              <th>Date</th>
+              <th>Car number</th>
+              <th>Car model</th>
+              <th>Dealer name</th>
+              <th>Service Status</th>
+              <th>Payment Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let service of serviceData">
+              <td>{{ service.bookingId }}</td>
+              <td>{{ service.service }}</td>
+              <td>{{ service.date }}</td>
+              <td>{{ service.carNumber }}</td>
+              <td>{{ service.model }}</td>
+              <td>{{ service.dealerName }}</td>
+              <td><span class="badge service-status" [ngClass]="getServiceStatusClass(service.serviceStatus)">{{ service.serviceStatus }}</span></td>
+              <td><span class="badge payment-status" [ngClass]="getPaymentStatusClass(service.status)">{{ service.status }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <!-- No data message -->
+        <div *ngIf="serviceData.length === 0" class="no-data-message">
+          <p>Data not available</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVE RENTAL -->
+    <div class="table-section">
+      <h3>Active Rental</h3>
+      
+      <div class="simple-table" *ngIf="!loadingRentals; else rentalLoadingTemplate">
+        <table *ngIf="rentalData.length > 0">
+          <thead>
+            <tr>
+              <th>Booking Id</th>
+              <th>Car number</th>
+              <th>Car model</th>
+              <th>Days</th>
+              <th>Dealer name</th>
+              <th>Price/Day</th>
+              <th>Rental Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let rental of rentalData">
+              <td>{{ rental.bookingId }}</td>
+              <td>{{ rental.carNumber }}</td>
+              <td>{{ rental.carModel }}</td>
+              <td>{{ rental.days }}</td>
+              <td>{{ rental.dealerName }}</td>
+              <td>{{ rental.pricePerDay }} Rs.</td>
+              <td><span class="badge rental-status" [ngClass]="getRentalStatusClass(rental.rentalStatus)">{{ rental.rentalStatus }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <!-- No data message -->
+        <div *ngIf="rentalData.length === 0" class="no-data-message">
+          <p>No rental bookings found</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Template -->
+    <ng-template #loadingTemplate>
+      <div class="loading-state">
+        <p>Loading your bookings...</p>
+      </div>
+    </ng-template>
+
+    <!-- Rental Loading Template -->
+    <ng-template #rentalLoadingTemplate>
+      <div class="loading-state">
+        <p>Loading your rental bookings...</p>
+      </div>
+    </ng-template>
+
+  </div>
+</div>
+
+<!-- Notification Dropdown -->
+<div *ngIf="showNotifications" class="notification-dropdown" (click)="$event.stopPropagation()">
+  <div class="notification-header">
+    <h4>Notifications</h4>
+    <button class="clear-all-btn" (click)="clearAllNotifications()" *ngIf="notifications.length > 0">Clear All</button>
+  </div>
+  
+  <div class="notification-list">
+    <div *ngIf="notifications.length === 0" class="no-notifications">
+      <p>No notifications</p>
+    </div>
+    
+    <div *ngFor="let notification of notifications" class="notification-item" [class.unread]="!notification.read">
+      <div class="notification-content">
+        <div class="notification-message">{{ notification.message }}</div>
+        <div class="notification-time">{{ notification.time | date:'short' }}</div>
+      </div>
+      <button class="delete-notification" (click)="deleteNotification(notification.id!)" *ngIf="notification.id">×</button>
+    </div>
+  </div>
+</div>

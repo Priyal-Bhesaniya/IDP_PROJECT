@@ -1,0 +1,432 @@
+<div class="container">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <img src="/assets/logo.jpg" alt="Auto Loop Logo" height="70px" width="70px"  />
+
+    <ul>
+      <li (click)="goToDashboard()">🏠 Dashboard</li>
+      <li (click)="goToDealer()">👥 Dealer</li>
+      <li class="active">🛠️ Book Service</li>
+      <li (click)="goToBookRental()">🚗 Book Rental</li>
+      <li class="logout" (click)="logout()">🚪 Logout</li>
+    </ul>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div></div>
+      <div class="user-info">
+        <span class="user-name">{{ userName }}</span>
+        <div class="user-circle">{{ userInitials }}</div>
+      </div>
+    </div>
+
+    <h2>Book Service</h2>
+
+    <!-- Dealer Selection -->
+    <div class="dealer-selection" *ngIf="!selectedDealer">
+      <h3>Select Dealer First</h3>
+      <div class="dealer-cards">
+        <div class="dealer-card" *ngFor="let dealer of availableDealers" (click)="selectDealer(dealer)">
+          <div class="dealer-info">
+            <h4>{{ dealer.name }}</h4>
+            <p>{{ dealer.address }}</p>
+            <p>Mobile: {{ dealer.phone }}</p>
+          </div>
+          <div class="dealer-status" [class.active]="dealer.status === 'Active'">
+            {{ dealer.status }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selected Dealer Info -->
+    <div class="selected-dealer" *ngIf="selectedDealer">
+      <div class="dealer-header">
+        <h3>Selected Dealer: {{ selectedDealer.name }}</h3>
+        <button class="change-dealer-btn" (click)="changeDealer()">Change Dealer</button>
+      </div>
+      <div class="dealer-details">
+        <p><strong>Address:</strong> {{ selectedDealer.address }}</p>
+        <p><strong>Mobile:</strong> {{ selectedDealer.phone }}</p>
+        <p><strong>Status:</strong> <span class="status-active">{{ selectedDealer.status }}</span></p>
+      </div>
+    </div>
+
+    <!-- Services Header -->
+    <div class="services-header" *ngIf="selectedDealer">
+      <h3>All Available Services ({{ filteredServices.length }})</h3>
+    </div>
+
+    <div class="content" *ngIf="selectedDealer">
+
+      <!-- Left: Services -->
+      <div class="services">
+
+        <div class="service-card" *ngFor="let service of filteredServices">
+          <div class="icon">{{service.icon}}</div>
+          <div>
+            <h3>{{service.name}}</h3>
+            <p>Duration: {{service.estimatedTime}}</p>
+          </div>
+          <button (click)="selectService(service)" kendoButton themeColor="primary">Select Car</button>
+        </div>
+
+        <div class="empty-brands" *ngIf="filteredServices.length === 0">
+          <p>No services available</p>
+        </div>
+
+      </div>
+
+      <!-- Right: Manufacturer -->
+      <div class="manufacturer">
+        <!-- Show brands when service is selected -->
+        <div *ngIf="selectedService && !selectedBrand" class="selection-section">
+          <div class="section-header">
+            <h4>Step 2: Select Brand</h4>
+            <p class="section-subtitle">Choose a brand for {{ selectedService.name }}</p>
+          </div>
+          
+          <div class="search-container">
+            <kendo-textbox 
+              placeholder="Search brands..." 
+              [(ngModel)]="searchTerm" 
+              (valueChange)="filterBrands()">
+            </kendo-textbox>
+          </div>
+          
+          <div class="brands-list">
+            <div 
+              class="brand-card" 
+              *ngFor="let brand of filteredBrands" 
+              [class.selected]="selectedBrand === brand" 
+              (click)="selectBrand(brand)">
+              <div class="brand-icon">🚗</div>
+              <div class="brand-name">{{ brand }}</div>
+            </div>
+            
+            <div class="empty-brands" *ngIf="filteredBrands.length === 0">
+              <p>No brands available</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Show models with prices when brand is selected -->
+        <div *ngIf="selectedBrand" class="selection-section">
+          <div class="section-header">
+            <h4>Step 3: Select Model</h4>
+            <p class="section-subtitle">Available {{ selectedBrand }} models for {{ selectedService?.name }}</p>
+          </div>
+          
+          <div class="search-container">
+            <kendo-textbox 
+              placeholder="Search models..." 
+              [(ngModel)]="modelSearchTerm" 
+              (valueChange)="filterModels()">
+            </kendo-textbox>
+          </div>
+          
+          <div class="vehicles-list">
+            <div 
+              class="vehicle-card" 
+              *ngFor="let vehicle of filteredServiceVehicles" 
+              [class.selected]="selectedVehicle?.id === vehicle.id"
+              (click)="selectVehicle(vehicle)">
+              <div class="vehicle-info">
+                <div class="vehicle-brand">{{ vehicle.brand }}</div>
+                <div class="vehicle-type">{{ vehicle.type }}</div>
+                <div class="vehicle-price">₹{{ vehicle.price }}</div>
+              </div>
+              <div class="vehicle-indicator">
+                <span *ngIf="selectedVehicle?.id === vehicle.id">✓</span>
+              </div>
+            </div>
+            
+            <div class="empty-vehicle" *ngIf="filteredServiceVehicles.length === 0">
+              <p>No models available</p>
+            </div>
+          </div>
+          
+          <div class="action-buttons">
+            <button class="back-btn" (click)="backToBrands()">← Back to Brands</button>
+            <button 
+              class="add-to-cart-btn" 
+              *ngIf="selectedVehicle"
+              (click)="addToCart()">
+              🛒 Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cart Section -->
+      <div class="cart-section">
+        <div class="cart-header">
+          <h4>Cart Items ({{cartItems.length}})</h4>
+          <button class="clear-cart-btn" (click)="clearCart()" *ngIf="cartItems.length > 0">Clear All</button>
+        </div>
+        
+        <div class="cart-items" *ngIf="cartItems.length > 0">
+          <div class="cart-item" *ngFor="let item of cartItems">
+            <div class="cart-item-info">
+              <div class="service-name">{{item.service.name}}</div>
+              <div class="vehicle-details">{{item.vehicle.brand}} {{item.vehicle.type}}</div>
+              <div class="price">₹{{item.totalPrice}}</div>
+            </div>
+            <button class="remove-item-btn" (click)="removeFromCart(item.id)">✕</button>
+          </div>
+        </div>
+        
+        <div class="empty-cart" *ngIf="cartItems.length === 0">
+          <p>Your cart is empty</p>
+        </div>
+        
+        <div class="cart-footer" *ngIf="cartItems.length > 0">
+          <div class="cart-total">Total: ₹{{getCartTotal()}}</div>
+          <button class="checkout-btn" (click)="checkout()">Checkout</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Vehicle Details Checkout Dialog -->
+<!-- Debug: showCheckoutForm = {{ showCheckoutForm }} -->
+<div class="dialog-overlay" *ngIf="showCheckoutForm" (click)="cancelCheckout()">
+  <div class="dialog-container" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h3>Vehicle Details</h3>
+      <button class="close-btn" (click)="cancelCheckout()">✕</button>
+    </div>
+
+    <div class="dialog-content">
+      <div class="service-details-summary">
+        <h4>Service Details</h4>
+        
+        <div class="detail-cards">
+          <!-- Service Card -->
+          <div class="detail-card">
+            <div class="card-header">
+              <span class="icon">🛠️</span>
+              <h5>Service Information</h5>
+            </div>
+            <div class="card-content">
+              <div class="detail-row">
+                <span class="label">Service Name:</span>
+                <span class="value">{{ currentCheckoutItem?.service?.name || 'N/A' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Service ID:</span>
+                <span class="value">{{ currentCheckoutItem?.service?.id || 'N/A' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Estimated Time:</span>
+                <span class="value">{{ currentCheckoutItem?.service?.estimatedTime || 'N/A' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vehicle Card -->
+          <div class="detail-card">
+            <div class="card-header">
+              <span class="icon">🚗</span>
+              <h5>Vehicle Information</h5>
+            </div>
+            <div class="card-content">
+              <div class="detail-row">
+                <span class="label">Brand:</span>
+                <span class="value">{{ currentCheckoutItem?.vehicle?.brand || 'N/A' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Model:</span>
+                <span class="value">{{ currentCheckoutItem?.vehicle?.type || 'N/A' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Vehicle ID:</span>
+                <span class="value">{{ currentCheckoutItem?.vehicle?.id || 'N/A' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dealer Card -->
+          <div class="detail-card">
+            <div class="card-header">
+              <span class="icon">👥</span>
+              <h5>Dealer Information</h5>
+            </div>
+            <div class="card-content">
+              <div class="detail-row">
+                <span class="label">Dealer Name:</span>
+                <span class="value">{{ currentCheckoutItem?.dealer?.name || 'N/A' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Dealer ID:</span>
+                <span class="value">{{ currentCheckoutItem?.dealer?.id || 'N/A' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Address:</span>
+                <span class="value">{{ currentCheckoutItem?.dealer?.address || 'N/A' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Price Card -->
+          <div class="detail-card price-card">
+            <div class="card-header">
+              <span class="icon">💰</span>
+              <h5>Pricing</h5>
+            </div>
+            <div class="card-content">
+              <div class="detail-row">
+                <span class="label">Service Price:</span>
+                <span class="value price">₹{{ currentCheckoutItem?.totalPrice || 0 }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Only Car Number Input -->
+      <div class="car-number-section">
+        <h4>Enter Your Vehicle Details</h4>
+        <div class="car-number-form">
+          <div class="form-group">
+            <label for="carNumber">Car Number *</label>
+            <input type="text" id="carNumber" [(ngModel)]="vehicleForm.carNumber" 
+                   placeholder="e.g., MH-12-AB-1234" 
+                   required
+                   class="car-number-input">
+            <small class="help-text">Please enter your vehicle registration number</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <button class="cancel-btn" (click)="cancelCheckout()">Cancel</button>
+      <button class="proceed-btn" (click)="submitVehicleDetails()">Proceed to Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Dialog -->
+<div class="dialog-overlay" *ngIf="showPaymentForm" (click)="cancelPayment()">
+  <div class="dialog-container" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h3>Payment Details</h3>
+      <button class="close-btn" (click)="cancelPayment()" [disabled]="paymentProcessing">✕</button>
+    </div>
+
+    <div class="dialog-content">
+      <div class="payment-summary">
+        <h4>Order Summary</h4>
+        <div class="summary-item">
+          <span>Service:</span>
+          <strong>{{ currentCheckoutItem?.service?.name || 'N/A' }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Vehicle:</span>
+          <strong>{{ currentCheckoutItem?.vehicleDetails?.carNumber || 'N/A' }} - {{ currentCheckoutItem?.vehicle?.brand || '' }} {{ currentCheckoutItem?.vehicle?.type || '' }}</strong>
+        </div>
+        <div class="summary-item total">
+          <span>Amount to Pay:</span>
+          <strong>₹{{ currentCheckoutItem?.totalPrice || 0 }}</strong>
+        </div>
+      </div>
+
+      <div class="payment-form" *ngIf="!paymentProcessing">
+        <h4>Payment Information</h4>
+        
+        <div class="payment-methods">
+          <label class="payment-method">
+            <input type="radio" name="paymentMethod" value="card" [(ngModel)]="paymentForm.paymentMethod" (change)="onPaymentMethodChange()">
+            <span>💳 Credit/Debit Card</span>
+          </label>
+          <label class="payment-method">
+            <input type="radio" name="paymentMethod" value="upi" [(ngModel)]="paymentForm.paymentMethod" (change)="onPaymentMethodChange()">
+            <span>📱 UPI</span>
+          </label>
+          <label class="payment-method">
+            <input type="radio" name="paymentMethod" value="netbanking" [(ngModel)]="paymentForm.paymentMethod" (change)="onPaymentMethodChange()">
+            <span>🏦 Net Banking</span>
+          </label>
+        </div>
+
+        <!-- Card Payment Form -->
+        <div class="card-payment-form" *ngIf="paymentForm.paymentMethod === 'card'">
+          <div class="form-group">
+            <label for="cardName">Cardholder Name *</label>
+            <input type="text" id="cardName" [(ngModel)]="paymentForm.cardName" 
+                   placeholder="John Doe" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="cardNumber">Card Number *</label>
+            <input type="text" id="cardNumber" [(ngModel)]="paymentForm.cardNumber" 
+                   placeholder="1234 5678 9012 3456" maxlength="19" required>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cardExpiry">Expiry Date *</label>
+              <input type="text" id="cardExpiry" [(ngModel)]="paymentForm.cardExpiry" 
+                     placeholder="MM/YY" maxlength="5" required>
+            </div>
+            <div class="form-group">
+              <label for="cardCvv">CVV *</label>
+              <input type="text" id="cardCvv" [(ngModel)]="paymentForm.cardCvv" 
+                     placeholder="123" maxlength="3" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- UPI Payment Form -->
+        <div class="upi-payment-form" *ngIf="paymentForm.paymentMethod === 'upi'">
+          <div class="form-group">
+            <label for="upiId">UPI ID *</label>
+            <input type="text" id="upiId" [(ngModel)]="paymentForm.upiId" 
+                   placeholder="yourname@upi" required>
+          </div>
+        </div>
+
+        <!-- Net Banking Form -->
+        <div class="netbanking-payment-form" *ngIf="paymentForm.paymentMethod === 'netbanking'">
+          <div class="form-group">
+            <label for="bankName">Select Bank *</label>
+            <select id="bankName" [(ngModel)]="paymentForm.bankName" required>
+              <option value="">Select Bank</option>
+              <option value="sbi">State Bank of India</option>
+              <option value="hdfc">HDFC Bank</option>
+              <option value="icici">ICICI Bank</option>
+              <option value="axis">Axis Bank</option>
+              <option value="pnb">Punjab National Bank</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Processing Payment -->
+      <div class="payment-processing" *ngIf="paymentProcessing">
+        <div class="processing-spinner"></div>
+        <h4>Processing Payment...</h4>
+        <p>Please wait while we process your payment securely.</p>
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <button class="cancel-btn" (click)="cancelPayment()" [disabled]="paymentProcessing">Cancel</button>
+      <button class="pay-btn" (click)="processPayment()" [disabled]="paymentProcessing">
+        {{ paymentProcessing ? 'Processing...' : 'Pay ₹' + (currentCheckoutItem?.totalPrice || 0) }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Popup Component -->
+<app-popup></app-popup>

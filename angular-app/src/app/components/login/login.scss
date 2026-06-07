@@ -1,0 +1,191 @@
+/* GLOBAL RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* ✅ critical */
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden; /* ✅ force remove scroll */
+}
+
+/* MAIN CONTAINER */
+.container {
+  display: flex;
+  height: 100%; /* ✅ instead of vh */
+  width: 100%;
+
+}
+
+/* LEFT SIDE */
+.left-section {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* BACKGROUND */
+.full-background {
+  position: absolute;
+  inset: 0; /* ✅ shorthand for top/left/right/bottom */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* RIGHT SIDE */
+.right-section {
+  flex: 1;
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  overflow: hidden; /* ✅ extra safety */
+}
+
+.form-container {
+  width: 320px;
+  max-width: 100%;
+  text-align: center;
+}
+
+.form-logo {
+  width: 120px;
+  height: 60px;
+  margin-bottom: 20px;
+  object-fit: contain;
+}
+
+/* INPUT */
+label {
+  display: block;
+  text-align: left;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #999;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+/* BUTTON */
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #2d3e6f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #1f2c50;
+}
+
+/* OTP Inputs */
+.otp-inputs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.otp-input {
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  border: 1px solid #999;
+  border-radius: 5px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.otp-input:focus {
+  outline: none;
+  border-color: #2d3e6f;
+}
+
+/* Resend Button */
+.resend-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: transparent;
+  color: #2d3e6f;
+  border: 1px solid #2d3e6f;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.resend-btn:hover {
+  background-color: #2d3e6f;
+  color: white;
+}
+
+.resend-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Message Display */
+.message {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.message.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Resend Link */
+.resend-link {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.resend-link a {
+  color: #2d3e6f;
+  text-decoration: underline;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.resend-link a:hover {
+  color: #1f2c50;
+}
+
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .left-section {
+    flex: 0 0 40%;
+  }
+
+  .right-section {
+    flex: 0 0 60%;
+  }
+}

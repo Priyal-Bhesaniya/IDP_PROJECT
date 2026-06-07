@@ -1,0 +1,36 @@
+<div class="popup-overlay" [class.visible]="isVisible" (click)="closePopup()">
+  <div class="popup-container" [class.visible]="isVisible" (click)="$event.stopPropagation()">
+    <div class="popup-header" [style.border-top-color]="getBorderColor()">
+      <div class="popup-icon" [style.color]="getIconColor()">
+        {{ getIcon() }}
+      </div>
+      <h3 class="popup-title">{{ currentPopup?.title || 'Message' }}</h3>
+      <button class="popup-close" (click)="closePopup()" aria-label="Close">
+        ✕
+      </button>
+    </div>
+    
+    <div class="popup-body">
+      <p class="popup-message">{{ currentPopup?.message || '' }}</p>
+    </div>
+    
+    <div class="popup-footer" *ngIf="currentPopup?.showConfirmButton || currentPopup?.showCancelButton">
+      <button 
+        class="popup-btn popup-btn-cancel" 
+        *ngIf="currentPopup?.showCancelButton"
+        (click)="onCancel()"
+      >
+        {{ currentPopup?.cancelButtonText || 'Cancel' }}
+      </button>
+      
+      <button 
+        class="popup-btn popup-btn-confirm" 
+        *ngIf="currentPopup?.showConfirmButton"
+        (click)="onConfirm()"
+        [style.background-color]="getBorderColor()"
+      >
+        {{ currentPopup?.confirmButtonText || 'OK' }}
+      </button>
+    </div>
+  </div>
+</div>

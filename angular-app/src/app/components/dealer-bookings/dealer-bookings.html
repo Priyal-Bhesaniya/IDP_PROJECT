@@ -1,0 +1,358 @@
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <img src="/assets/logo.jpg" alt="Auto Loop Logo" height="70px" width="70px" />
+
+    <ul>
+      <li (click)="goToDashboard()">📊 Dashboard</li>
+      <li (click)="goToServices()">🛠️ All Services</li>
+      <li class="active">📅 Bookings</li>
+      <li (click)="goToBookRental()">🚗 Rentals</li>
+      <li class="logout" (click)="logout()">🚪 Logout</li>
+    </ul>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div></div>
+      <div class="user-info">
+        <span class="user-name">{{ userName }}</span>
+        <div class="user-circle">{{ userInitials }}</div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <div class="page-container">
+
+        <!-- Header -->
+        <div class="header">
+          <h2>Service Bookings</h2>
+          <div class="header-actions">
+            <div class="pending-approval" *ngIf="getPendingApprovalCount() > 0">
+              <span class="badge">{{ getPendingApprovalCount() }}</span>
+              <span>Pending Approval</span>
+            </div>
+            <button class="refresh-btn" (click)="refreshBookings()">🔄 Refresh</button>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-section">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label for="statusFilter">Status:</label>
+              <select id="statusFilter" [(ngModel)]="statusFilter" (change)="refreshBookings()">
+                <option value="paid">Paid (Pending Approval)</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="completed">Completed</option>
+                <option value="all">All</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="searchTerm">Search:</label>
+              <input type="text" id="searchTerm" [(ngModel)]="searchTerm" 
+                     placeholder="Search by mobile, car number, brand...">
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-state" *ngIf="loading">
+          <div class="spinner"></div>
+          <p>Loading bookings...</p>
+        </div>
+
+        <!-- Error State -->
+        <div class="error-state" *ngIf="error">
+          <p>{{ error }}</p>
+          <button class="retry-btn" (click)="refreshBookings()">Retry</button>
+        </div>
+
+        <!-- Bookings Grid -->
+        <div class="bookings-grid" *ngIf="!loading && !error">
+          <div class="bookings-table">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Booking ID</th>
+                  <th>Customer</th>
+                  <th>Vehicle</th>
+                  <th>Service</th>
+                  <th>Price</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let booking of getFilteredBookings(); let i = index">
+                  <td>
+                    <span class="booking-id">#{{ booking.id || 'N/A' }}</span>
+                  </td>
+                  <td>
+                    <div class="customer-info">
+                      <div class="mobile">{{ booking.userMobile }}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="vehicle-info">
+                      <div class="car-details">
+                        <strong>{{ booking.carBrand }} {{ booking.carModel }}</strong>
+                        <div class="car-number">{{ booking.carNumber }}</div>
+                        <div class="car-extra" *ngIf="booking.carColor">Color: {{ booking.carColor }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="service-info">
+                      <div class="service-name">Service ID: {{ booking.serviceId }}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="price">₹{{ booking.price }}</div>
+                  </td>
+                  <td>
+                    <div class="status-badge" 
+                         [style.background-color]="getStatusColor(booking.status)"
+                         [style.color]="'white'">
+                      {{ getStatusLabel(booking.status) }}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="date">{{ formatDate(booking.createdAt || '') }}</div>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="action-btn view-btn" (click)="viewBooking(booking)" title="View Details">
+                        <span class="icon">👁️</span>
+                      </button>
+                      
+                      <!-- Approve button for paid bookings -->
+                      <button class="action-btn approve-btn" 
+                              *ngIf="booking.status === 'paid'"
+                              (click)="approveBooking(booking)" 
+                              title="Approve">
+                        <span class="icon">✅</span>
+                      </button>
+                      
+                      <!-- Reject button for paid bookings -->
+                      <button class="action-btn reject-btn" 
+                              *ngIf="booking.status === 'paid'"
+                              (click)="rejectBooking(booking)" 
+                              title="Reject">
+                        <span class="icon">❌</span>
+                      </button>
+                      
+                      <!-- Complete button for approved bookings -->
+                      <button class="action-btn complete-btn" 
+                              *ngIf="booking.status === 'approved'"
+                              (click)="markAsCompleted(booking)" 
+                              title="Mark as Completed">
+                        <span class="icon">🏁</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <!-- Empty State -->
+            <div class="empty-state" *ngIf="getFilteredBookings().length === 0">
+              <p>No bookings found</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- View Booking Dialog -->
+<div class="dialog-overlay" *ngIf="showViewDialog" (click)="closeViewDialog()">
+  <div class="dialog-container" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h3>Booking Details</h3>
+      <button class="close-btn" (click)="closeViewDialog()">✕</button>
+    </div>
+
+    <div class="dialog-content">
+      <div class="booking-details">
+        <div class="detail-section">
+          <h4>Customer Information</h4>
+          <div class="detail-row">
+            <label>Mobile Number:</label>
+            <span>{{ selectedBooking?.userMobile }}</span>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4>Vehicle Information</h4>
+          <div class="detail-row">
+            <label>Car Number:</label>
+            <span>{{ selectedBooking?.carNumber }}</span>
+          </div>
+          <div class="detail-row">
+            <label>Brand & Model:</label>
+            <span>{{ selectedBooking?.carBrand }} {{ selectedBooking?.carModel }}</span>
+          </div>
+          <div class="detail-row" *ngIf="selectedBooking?.carYear">
+            <label>Year:</label>
+            <span>{{ selectedBooking?.carYear }}</span>
+          </div>
+          <div class="detail-row" *ngIf="selectedBooking?.carColor">
+            <label>Color:</label>
+            <span>{{ selectedBooking?.carColor }}</span>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4>Service Information</h4>
+          <div class="detail-row">
+            <label>Service ID:</label>
+            <span>{{ selectedBooking?.serviceId }}</span>
+          </div>
+          <div class="detail-row">
+            <label>Dealer ID:</label>
+            <span>{{ selectedBooking?.dealerId }}</span>
+          </div>
+          <div class="detail-row">
+            <label>Price:</label>
+            <span class="price">₹{{ selectedBooking?.price }}</span>
+          </div>
+          <div class="detail-row">
+            <label>Status:</label>
+            <span class="status-badge" 
+                 [style.background-color]="getStatusColor(selectedBooking?.status || '')"
+                 [style.color]="'white'">
+              {{ getStatusLabel(selectedBooking?.status || '') }}
+            </span>
+          </div>
+        </div>
+
+        <div class="detail-section" *ngIf="selectedBooking?.additionalNotes">
+          <h4>Additional Notes</h4>
+          <div class="notes">
+            {{ selectedBooking?.additionalNotes }}
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4>Booking Information</h4>
+          <div class="detail-row">
+            <label>Booking ID:</label>
+            <span>{{ selectedBooking?.id || 'N/A' }}</span>
+          </div>
+          <div class="detail-row">
+            <label>Created Date:</label>
+            <span>{{ formatDate(selectedBooking?.createdAt || '') }}</span>
+          </div>
+          <div class="detail-row" *ngIf="selectedBooking?.paymentId">
+            <label>Payment ID:</label>
+            <span>{{ selectedBooking?.paymentId }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <button class="close-dialog-btn" (click)="closeViewDialog()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Approve Booking Dialog -->
+<div class="dialog-overlay" *ngIf="showApproveDialog" (click)="closeApproveDialog()">
+  <div class="dialog-container" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h3>Approve Booking</h3>
+      <button class="close-btn" (click)="closeApproveDialog()">✕</button>
+    </div>
+
+    <div class="dialog-content">
+      <div class="approve-message">
+        <p>Are you sure you want to approve this booking?</p>
+        <div class="booking-summary">
+          <div class="summary-item">
+            <span>Booking ID:</span>
+            <strong>{{ selectedBooking?.id }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>Customer:</span>
+            <strong>{{ selectedBooking?.userMobile }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>Vehicle:</span>
+            <strong>{{ selectedBooking?.carBrand }} {{ selectedBooking?.carModel }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>Price:</span>
+            <strong>₹{{ selectedBooking?.price }}</strong>
+          </div>
+        </div>
+        <p class="warning-text">Once approved, the customer will be notified and you can proceed with the service.</p>
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <button class="cancel-btn" (click)="closeApproveDialog()">Cancel</button>
+      <button class="approve-btn" (click)="confirmApprove()">Approve Booking</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reject Booking Dialog -->
+<div class="dialog-overlay" *ngIf="showRejectDialog" (click)="closeRejectDialog()">
+  <div class="dialog-container" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h3>Reject Booking</h3>
+      <button class="close-btn" (click)="closeRejectDialog()">✕</button>
+    </div>
+
+    <div class="dialog-content">
+      <div class="reject-message">
+        <p>Are you sure you want to reject this booking?</p>
+        <div class="booking-summary">
+          <div class="summary-item">
+            <span>Booking ID:</span>
+            <strong>{{ selectedBooking?.id }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>Customer:</span>
+            <strong>{{ selectedBooking?.userMobile }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>Vehicle:</span>
+            <strong>{{ selectedBooking?.carBrand }} {{ selectedBooking?.carModel }}</strong>
+          </div>
+        </div>
+        
+        <div class="rejection-reason">
+          <label for="rejectionReason">Reason for rejection *</label>
+          <textarea id="rejectionReason" 
+                    [(ngModel)]="rejectionReason" 
+                    rows="4" 
+                    placeholder="Please provide a reason for rejecting this booking..."
+                    required></textarea>
+        </div>
+        
+        <p class="warning-text">The customer will be notified about the rejection and the reason provided.</p>
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <button class="cancel-btn" (click)="closeRejectDialog()">Cancel</button>
+      <button class="reject-btn" (click)="confirmReject()">Reject Booking</button>
+    </div>
+  </div>
+</div>

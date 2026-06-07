@@ -1,0 +1,298 @@
+<div class="dealers-page">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <img src="/assets/logo.jpg" alt="Auto Loop Logo" height="70px" width="70px" />
+
+    <ul>
+      <li (click)="goToDashboard()">🏠 Dashboard</li>
+      <li class="active">🚗 Dealers</li>
+
+      <li class="logout" (click)="logout()">🚪 Logout</li>
+    </ul>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="header-title">All Dealers</div>
+      <div class="user-info">
+        <span class="user-name">{{ userName }}</span>
+        <div class="user-circle">{{ userInitials }}</div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="actions">
+      <input class="search-box" placeholder="Search..." />
+      <button class="btn-add" (click)="openAddDealerDialog()">Add Dealer</button>
+    </div>
+
+    <!-- DEALER DETAILS DIALOG -->
+    <div id="dealerDetailsDialog" class="dialog-overlay" [style.display]="showDetailsDialog ? 'flex' : 'none'">
+      <div class="dialog-container">
+        <div class="dialog-header">Dealer Details</div>
+        
+        <div class="details-content">
+          <div class="detail-section">
+            <h4>Basic Information</h4>
+            <div class="detail-grid">
+              <div><strong>Dealer Name:</strong> {{ selectedDealer?.name }}</div>
+              <div><strong>Owner Name:</strong> {{ selectedDealer?.ownerName }}</div>
+              <div><strong>Registration:</strong> {{ selectedDealer?.registrationNumber }}</div>
+              <div><strong>GST Number:</strong> {{ selectedDealer?.gstNumber }}</div>
+            </div>
+            <div class="full-address">
+              <strong>Address:</strong> {{ selectedDealer?.address }}
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Operational Setup</h4>
+            <div class="detail-grid">
+              <div><strong>Service Capacity:</strong> {{ selectedDealer?.serviceCapacity }}</div>
+              <div><strong>Opening Time:</strong> {{ selectedDealer?.openingTime }}</div>
+              <div><strong>Closing Time:</strong> {{ selectedDealer?.closingTime }}</div>
+              <div><strong>Status:</strong> {{ selectedDealer?.status }}</div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Rental Setup</h4>
+            <div class="detail-grid">
+              <div><strong>Rental Enabled:</strong> {{ selectedDealer?.rentalEnabled }}</div>
+              <div><strong>Total Services:</strong> {{ selectedDealer?.services }}</div>
+              <div><strong>Total Cars:</strong> {{ selectedDealer?.cars }}</div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Contact Information</h4>
+            <div class="detail-grid">
+              <div><strong>Phone:</strong> {{ selectedDealer?.phone }}</div>
+              <div><strong>Joined Date:</strong> {{ selectedDealer?.joinedDate }}</div>
+              <div><strong>Dealer ID:</strong> {{ selectedDealer?.id }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dialog Footer -->
+        <div class="dialog-footer">
+          <button class="btn-cancel" (click)="closeDetailsDialog()">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DELETE CONFIRMATION DIALOG -->
+    <div id="deleteConfirmDialog" class="dialog-overlay" [style.display]="showDeleteConfirmDialog ? 'flex' : 'none'">
+      <div class="dialog-container" style="max-width: 400px;">
+        <div class="dialog-header">Confirm Delete</div>
+        
+        <div class="details-content">
+          <p>Are you sure you want to delete this dealer?</p>
+          <p style="color: #dc2626; font-weight: 500; margin-top: 10px;">This action cannot be undone.</p>
+        </div>
+
+        <!-- Dialog Footer -->
+        <div class="dialog-footer">
+          <button class="btn-cancel" (click)="closeDeleteConfirmDialog()">Cancel</button>
+          <button class="btn-delete" (click)="confirmDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD/EDIT DEALER DIALOG -->
+    <div id="addDealerDialog" class="dialog-overlay" [style.display]="showDialog ? 'flex' : 'none'">
+      <div class="dialog-container">
+        <div class="dialog-header">{{ isEditMode ? 'Edit Dealer' : 'Add Dealer' }}</div>
+
+        <!-- Tabs -->
+        <div class="tab-strip">
+          <ul>
+            <li [class]="activeTab === 1 ? 'active' : ''" (click)="setActiveTab(1)">Basic Information</li>
+            <li [class]="activeTab === 2 ? 'active' : ''" (click)="setActiveTab(2)">Operational Setup</li>
+            <li [class]="activeTab === 3 ? 'active' : ''" (click)="setActiveTab(3)">Rental Setup</li>
+          </ul>
+        </div>
+
+        <!-- TAB 1: Basic Information -->
+        <div class="tab-content" [style.display]="activeTab === 1 ? 'block' : 'none'">
+          <div class="form-grid">
+            <div>
+              <label>Dealer / Garage Name</label>
+              <input class="form-input full" [(ngModel)]="newDealer.name" />
+            </div>
+            <div>
+              <label>Owner Name</label>
+              <input class="form-input full" [(ngModel)]="newDealer.ownerName" />
+            </div>
+            <div>
+              <label>Business Registration Number</label>
+              <input class="form-input full" [(ngModel)]="newDealer.registrationNumber" />
+            </div>
+            <div>
+              <label>GST Number</label>
+              <input class="form-input full" [(ngModel)]="newDealer.gstNumber" />
+            </div>
+          </div>
+
+          <div class="section-title">Location Details</div>
+          <div>
+            <label>Full Address</label>
+            <textarea class="form-input full" [(ngModel)]="newDealer.address"></textarea>
+          </div>
+
+          <div>
+            <label>Phone Number</label>
+            <input class="form-input full" [(ngModel)]="newDealer.phone" placeholder="Enter phone number" />
+          </div>
+
+          <div class="section-title">Garage Logo</div>
+          <div class="image-upload-section">
+            <div class="image-upload-box">
+              <input type="file" id="garageLogo" class="file-input" (change)="onFileUpload('garageLogo', $event)" accept="image/*">
+              <label for="garageLogo" class="file-label">
+                <div class="upload-icon"> </div>
+                <span>Upload Garage Logo</span>
+              </label>
+              <div class="image-preview" *ngIf="garageLogoPreview">
+                <img [src]="garageLogoPreview" alt="Garage Logo">
+                <button class="remove-image" (click)="removeImage('garageLogo')">×</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: Operational Setup -->
+        <div class="tab-content" [style.display]="activeTab === 2 ? 'block' : 'none'">
+          <div class="form-grid">
+            
+            <div>
+              <label>Opening Time</label>
+              <input class="form-input full" type="time" [(ngModel)]="newDealer.openingTime" />
+            </div>
+            <div>
+              <label>Closing Time</label>
+              <input class="form-input full" type="time" [(ngModel)]="newDealer.closingTime" />
+            </div>
+          </div>
+
+          <div class="section-title">Service Images (4 images)</div>
+          <div class="image-upload-grid">
+            <div class="image-upload-box" *ngFor="let i of [1,2,3,4]">
+              <input type="file" [id]="'service' + i" class="file-input" (change)="onFileUpload('service' + i, $event)" accept="image/*">
+              <label [for]="'service' + i" class="file-label">
+                <div class="upload-icon"> </div>
+                <span>Service Image {{ i }}</span>
+              </label>
+              <div class="image-preview" *ngIf="serviceImagesPreview[i-1]">
+                <img [src]="serviceImagesPreview[i-1]" alt="Service Image {{ i }}">
+                <button class="remove-image" (click)="removeImage('service' + i)">×</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="note-section">
+            <p><strong>Note:</strong> Service types are set to Basic by default. Staff count is managed separately.</p>
+          </div>
+        </div>
+
+        <!-- TAB 3: Rental Setup -->
+        <div class="tab-content" [style.display]="activeTab === 3 ? 'block' : 'none'">
+          <div class="form-grid">
+            <div>
+              <label>Rental Enabled</label>
+              <select class="form-input full" [(ngModel)]="newDealer.rentalEnabled">
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="section-title">Rental Car Sample Images (2 images)</div>
+          <div class="image-upload-grid">
+            <div class="image-upload-box" *ngFor="let i of [1,2]">
+              <input type="file" [id]="'rental' + i" class="file-input" (change)="onFileUpload('rental' + i, $event)" accept="image/*">
+              <label [for]="'rental' + i" class="file-label">
+                <div class="upload-icon"> </div>
+                <span>Rental Car {{ i }}</span>
+              </label>
+              <div class="image-preview" *ngIf="rentalImagesPreview[i-1]">
+                <img [src]="rentalImagesPreview[i-1]" alt="Rental Car {{ i }}">
+                <button class="remove-image" (click)="removeImage('rental' + i)">×</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="note-section">
+            <p><strong>Note:</strong> Pricing model is configured at dealer level. Insurance is managed separately.</p>
+          </div>
+        </div>
+
+        <!-- Dialog Footer -->
+        <div class="dialog-footer">
+          <button class="btn-cancel" (click)="closeAddDealerDialog()">Cancel</button>
+          <button class="btn-next" (click)="nextTab()" *ngIf="activeTab < 3">Next</button>
+          <button class="btn-save" (click)="saveDealer()" *ngIf="activeTab === 3">{{ isEditMode ? 'Update Dealer' : 'Save Dealer' }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOADING STATE -->
+    <div class="loading-container" *ngIf="loading">
+      <div class="loading-spinner">Loading dealers...</div>
+    </div>
+
+    <!-- ERROR STATE -->
+    <div class="error-container" *ngIf="error">
+      <div class="error-message">{{ error }}</div>
+      <button class="btn-retry" (click)="loadDealers()">Retry</button>
+    </div>
+
+    <!-- KENDO GRID -->
+    <div class="k-grid-container" *ngIf="!loading && !error">
+      <table class="dealers-grid">
+        <thead>
+          <tr>
+            <th>Dealer ID</th>
+            <th>Dealer Name</th>
+            <th>Contact Number</th>
+            <th>Active / Inactive</th>
+            <th>Total Services</th>
+            <th>Total Rental</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let dealer of dealers">
+            <td>
+              <div class="dealer-id-with-actions">
+                <span class="dealer-id">{{ dealer.id }}</span>
+                <div class="action-buttons">
+                <button class="action-btn btn-view" (click)="viewDealerDetails(dealer.id)" title="View Details">👁</button>
+                <button class="action-btn btn-edit" (click)="editDealer(dealer.id)" title="Edit">✏️</button>
+                <button class="action-btn btn-delete" (click)="deleteDealer(dealer.id)" title="Delete">🗑️</button>
+                <button class="action-btn btn-pause" (click)="toggleDealerStatus(dealer.id, 'inactive')" 
+                        *ngIf="dealer.status === 'Active'" title="Make Inactive">⏸️</button>
+                <button class="action-btn btn-play" (click)="toggleDealerStatus(dealer.id, 'active')" 
+                        *ngIf="dealer.status === 'Inactive'" title="Make Active">▶️</button>
+              </div>
+              </div>
+            </td>
+            <td>{{ dealer.name }}</td>
+            <td>{{ dealer.phone }}</td>
+            <td>
+              <span [class]="dealer.status === 'Active' ? 'status-active' : 'status-inactive'">
+                {{ dealer.status === 'Active' ? 'Yes' : 'No' }}
+              </span>
+            </td>
+            <td>{{ dealer.services }}</td>
+            <td>{{ dealer.cars }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>

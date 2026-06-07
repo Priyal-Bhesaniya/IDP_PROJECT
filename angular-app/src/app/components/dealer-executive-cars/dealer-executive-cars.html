@@ -1,0 +1,219 @@
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <img src="/assets/logo.jpg" alt="Auto Loop Logo" height="70px" width="70px" />
+
+    <ul>
+      <li (click)="goToBookings()">📅 All Bookings</li>
+      <li (click)="goToServices()">🛠️ All Services</li>
+      <li class="active">🚗 Executive Cars</li>
+      <li class="logout" (click)="logout()">🚪 Logout</li>
+    </ul>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div></div>
+      <div class="user-info">
+        <span class="user-name">{{ userName }}</span>
+        <div class="user-circle">{{ userInitials }}</div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <div class="page-container">
+
+        <!-- Header -->
+        <div class="header">
+          <h2>Executive Cars</h2>
+
+          <div class="header-actions">
+            <div class="search-box">
+              <input type="text" placeholder="Search cars..." [(ngModel)]="searchTerm" />
+              <button>🔍</button>
+            </div>
+            <button class="add-btn" (click)="addCarCategory()">+ Add Car Category</button>
+          </div>
+        </div>
+
+        <!-- Grid Container -->
+        <div class="grid-container">
+          <table class="custom-grid" *ngIf="filteredCars.length > 0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Category</th>
+                <th>Car Number</th>
+                <th>Min Km</th>
+                <th>Extra Km</th>
+                <th>Max Km</th>
+                <th>Gear Type</th>
+                <th>Fuel Type</th>
+                <th>Seats</th>
+                <th>Price/Day</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let car of filteredCars">
+                <td>
+                  <div class="id-row">
+                    <span class="id-number">{{ car.id }}</span>
+                    <div class="action-buttons">
+                      <button class="icon-btn edit" (click)="editCar(car)" title="Edit">✏️</button>
+                      <button class="icon-btn delete" (click)="deleteCar(car)" title="Delete">🗑️</button>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ car.category }}</td>
+                <td>{{ car.carNumber }}</td>
+                <td>{{ car.minKm }}</td>
+                <td>{{ car.extraKm }}</td>
+                <td>{{ car.maxKm }}</td>
+                <td>{{ car.gearType }}</td>
+                <td>{{ car.fuelType }}</td>
+                <td>{{ car.seats }}</td>
+                <td>₹{{ car.pricePerDay }}</td>
+                <td>
+                  <label class="toggle-switch">
+                    <input type="checkbox" [checked]="car.status === 'active'" (change)="toggleCarStatus(car)">
+                    <span class="slider"></span>
+                  </label>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div *ngIf="filteredCars.length === 0" class="no-data">
+            <p>No executive cars found</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- Add Car Category Dialog -->
+<div class="dialog-overlay" *ngIf="isDialogOpen">
+
+  <div class="custom-dialog">
+
+    <!-- Header -->
+    <div class="dialog-header">
+      <h3>{{ dialogMode === 'add' ? 'Add Car Category' : 'Edit Car Category' }}</h3>
+      <span class="close-btn" (click)="closeDialog()">&times;</span>
+    </div>
+
+    <!-- Car Details Form -->
+    <div class="form-content">
+      <div class="form-grid">
+
+        <!-- Left Column -->
+        <div class="form-group">
+          <label>Car Category</label>
+          <input type="text" [(ngModel)]="newCar.category" placeholder="BMW">
+        </div>
+
+        <div class="form-group">
+          <label>Car Number</label>
+          <input type="text" [(ngModel)]="newCar.carNumber" placeholder="GJ031234BD">
+        </div>
+
+        <div class="form-group">
+          <label>Min Km</label>
+          <input type="number" [(ngModel)]="newCar.minKm">
+        </div>
+
+        <div class="form-group">
+          <label>Max Km</label>
+          <input type="number" [(ngModel)]="newCar.maxKm">
+        </div>
+
+        <div class="form-group">
+          <label>Extra Km</label>
+          <input type="number" [(ngModel)]="newCar.extraKm">
+        </div>
+
+        <div class="form-group">
+          <label>Fuel Type</label>
+          <input type="text" [(ngModel)]="newCar.fuelType" placeholder="Petrol">
+        </div>
+
+        <div class="form-group">
+          <label>Gear Type</label>
+          <input type="text" [(ngModel)]="newCar.gearType" placeholder="Automatic">
+        </div>
+
+        <div class="form-group">
+          <label>Seats</label>
+          <input type="number" [(ngModel)]="newCar.seats">
+        </div>
+
+        <div class="form-group full-width">
+          <label>Price per day</label>
+          <input type="number" [(ngModel)]="newCar.pricePerDay">
+        </div>
+
+        <div class="form-group full-width">
+          <label>Status</label>
+          <div class="toggle-container">
+            <label class="toggle-switch">
+              <input type="checkbox" [checked]="newCar.status === 'active'" (change)="toggleDialogStatus()">
+              <span class="slider"></span>
+            </label>
+            <span class="status-text" [class.active]="newCar.status === 'active'">
+              {{ newCar.status === 'active' ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="dialog-footer">
+      <button class="cancel-btn" (click)="closeDialog()">Cancel</button>
+      <button class="save-btn" (click)="saveCar()">Save</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<div class="dialog-overlay" *ngIf="isDeleteDialogOpen">
+
+  <div class="delete-dialog">
+
+    <!-- Header -->
+    <div class="dialog-header">
+      <h3>Delete Car</h3>
+      <span class="close-btn" (click)="closeDeleteDialog()">&times;</span>
+    </div>
+
+    <!-- Content -->
+    <div class="delete-content">
+      <div class="delete-warning">
+        <div class="warning-icon">⚠️</div>
+        <p>Are you sure you want to delete this car?</p>
+        <p class="car-details"><strong>{{ carToDelete?.category }} - {{ carToDelete?.carNumber }}</strong></p>
+        <p class="warning-text">This action cannot be undone.</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="dialog-footer">
+      <button class="cancel-btn" (click)="closeDeleteDialog()">Cancel</button>
+      <button class="delete-btn" (click)="confirmDelete()">Delete</button>
+    </div>
+
+  </div>
+</div>
