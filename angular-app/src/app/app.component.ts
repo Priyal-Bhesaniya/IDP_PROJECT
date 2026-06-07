@@ -18,3 +18,4 @@ export class AppComponent {
 }  
 
 //added new branch
+//after merge i am agian doing `git pull` to get the latest changes from the remote repository
